@@ -138,7 +138,7 @@ function createApolloClient(_ref) {
     link = authLink.concat(link);
 
     if (preAuthLinks.length) {
-      link = (0, _apolloLink.from)(preAuthLinks).concat(authLink);
+      link = (0, _apolloLink.from)(preAuthLinks).concat(link);
     }
   } // On the server, we don't want WebSockets and Upload links
 

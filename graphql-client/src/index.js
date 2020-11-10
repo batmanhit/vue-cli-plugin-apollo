@@ -9,6 +9,7 @@ import { getMainDefinition } from 'apollo-utilities'
 import { createPersistedQueryLink } from 'apollo-link-persisted-queries'
 import { setContext } from 'apollo-link-context'
 import { withClientState } from 'apollo-link-state'
+import 'regenerator-runtime/runtime'
 
 // Create the apollo client
 export function createApolloClient ({

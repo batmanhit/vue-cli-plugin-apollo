@@ -30,8 +30,6 @@ var _apolloLinkState = require("apollo-link-state");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
-function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
-
 function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread(); }
 
 function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
@@ -43,6 +41,8 @@ function _iterableToArray(iter) { if (typeof Symbol !== "undefined" && Symbol.it
 function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) return _arrayLikeToArray(arr); }
 
 function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
+function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
@@ -146,13 +146,7 @@ function createApolloClient(_ref) {
       return function (_x, _x2) {
         return _ref3.apply(this, arguments);
       };
-    }()); // Concat all the http link parts
-
-    if (preAuthLinks.length) {
-      link = (0, _apolloLink.from)([].concat(_toConsumableArray(preAuthLinks), [authLink, link]));
-    } else {
-      link = (0, _apolloLink.from)(authLink, link);
-    }
+    }());
   } // On the server, we don't want WebSockets and Upload links
 
 
@@ -212,7 +206,10 @@ function createApolloClient(_ref) {
           return kind === 'OperationDefinition' && operation === 'subscription';
         }, wsLink, link);
       }
-    }
+    } // Concat all the http link parts
+
+
+    link = (0, _apolloLink.from)([].concat(_toConsumableArray(preAuthLinks), [authLink, link]));
   }
 
   if (clientState) {

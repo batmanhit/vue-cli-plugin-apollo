@@ -9,7 +9,9 @@ import { getMainDefinition } from 'apollo-utilities'
 import { createPersistedQueryLink } from 'apollo-link-persisted-queries'
 import { setContext } from 'apollo-link-context'
 import { withClientState } from 'apollo-link-state'
-import 'regenerator-runtime/runtime'
+
+// eslint-disable-next-line no-unused-vars
+const regeneratorRuntime = require('regenerator-runtime/runtime')
 
 // Create the apollo client
 export function createApolloClient ({
@@ -88,10 +90,10 @@ export function createApolloClient ({
     })
 
     // Concat all the http link parts
-    link = authLink.concat(link)
-
     if (preAuthLinks.length) {
-      link = from(preAuthLinks).concat(link)
+      link = from([...preAuthLinks, authLink, link])
+    } else {
+      link = from(authLink, link)
     }
   }
 

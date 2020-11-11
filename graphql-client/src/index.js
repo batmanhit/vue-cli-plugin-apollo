@@ -10,6 +10,9 @@ import { createPersistedQueryLink } from 'apollo-link-persisted-queries'
 import { setContext } from 'apollo-link-context'
 import { withClientState } from 'apollo-link-state'
 
+// eslint-disable-next-line no-unused-vars
+const regeneratorRuntime = require('regenerator-runtime/runtime')
+
 // Create the apollo client
 export function createApolloClient ({
   // Client ID if using multiple Clients

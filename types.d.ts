@@ -1,9 +1,9 @@
 declare module 'vue-cli-plugin-apollo/graphql-client' {
-  import { ApolloClient, ApolloClientOptions, Resolvers } from '@apollo/client'
+  import { ApolloClient, ApolloClientOptions, Resolvers } from '@apollo/client/core'
+  import { InMemoryCacheConfig } from '@apollo/client/cache'
   import { DocumentNode } from 'apollo-link'
   import { SubscriptionClient } from 'subscriptions-transport-ws'
   import { ClientStateConfig } from 'apollo-link-state'
-  import { InMemoryCacheConfig } from 'apollo-cache-inmemory'
 
   export interface ApolloClientClientConfig<TCacheShape> {
     // URL to the HTTP API

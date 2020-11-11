@@ -6,9 +6,13 @@ Object.defineProperty(exports, "__esModule", {
 exports.createApolloClient = createApolloClient;
 exports.restartWebsockets = restartWebsockets;
 
-var _client = require("@apollo/client");
+var _core = require("@apollo/client/core");
+
+var _cache = require("@apollo/client/cache");
 
 var _context2 = require("@apollo/client/link/context");
+
+var _error = require("@apollo/client/link/error");
 
 var _persistedQueries = require("@apollo/client/link/persisted-queries");
 
@@ -27,6 +31,18 @@ var _apolloLinkState = require("apollo-link-state");
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
 function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
+
+function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread(); }
+
+function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _iterableToArray(iter) { if (typeof Symbol !== "undefined" && Symbol.iterator in Object(iter)) return Array.from(iter); }
+
+function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) return _arrayLikeToArray(arr); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
 
 function asyncGeneratorStep(gen, resolve, reject, _next, _throw, key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { Promise.resolve(value).then(_next, _throw); } }
 
@@ -80,11 +96,11 @@ function createApolloClient(_ref) {
       resolvers = _ref$resolvers === void 0 ? undefined : _ref$resolvers,
       _ref$onCacheInit = _ref.onCacheInit,
       onCacheInit = _ref$onCacheInit === void 0 ? undefined : _ref$onCacheInit;
-  var wsClient, authLink, stateLink;
+  var wsClient, authLink, stateLink, errorLink;
   var disableHttp = websocketsOnly && !ssr && wsEndpoint; // Apollo cache
 
   if (!cache) {
-    cache = new _client.InMemoryCache(inMemoryCacheOptions);
+    cache = new _cache.InMemoryCache(inMemoryCacheOptions);
   }
 
   if (!disableHttp) {
@@ -95,7 +111,7 @@ function createApolloClient(_ref) {
     if (!link) {
       link = httpLink;
     } else if (defaultHttpLink) {
-      link = (0, _client.from)([link, httpLink]);
+      link = (0, _core.from)([link, httpLink]);
     } // HTTP Auth header injection
 
 
@@ -133,9 +149,17 @@ function createApolloClient(_ref) {
     }()); // Concat all the http link parts
 
     link = authLink.concat(link);
+    errorLink = (0, _error.onError)(function (_ref4) {
+      var response = _ref4.response,
+          operation = _ref4.operation;
+
+      if (operation.operationName === 'IgnoreErrorsQuery') {
+        response.errors = null;
+      }
+    });
 
     if (preAuthLinks.length) {
-      link = (0, _client.from)(preAuthLinks).concat(authLink);
+      link = (0, _core.from)([errorLink].concat(_toConsumableArray(preAuthLinks), [authLink]));
     }
   } // On the server, we don't want WebSockets and Upload links
 
@@ -185,9 +209,9 @@ function createApolloClient(_ref) {
       if (disableHttp) {
         link = link ? link.concat(wsLink) : wsLink;
       } else {
-        link = (0, _client.split)( // split based on operation type
-        function (_ref4) {
-          var query = _ref4.query;
+        link = (0, _core.split)( // split based on operation type
+        function (_ref5) {
+          var query = _ref5.query;
 
           var _getMainDefinition = (0, _apolloUtilities.getMainDefinition)(query),
               kind = _getMainDefinition.kind,
@@ -204,10 +228,10 @@ function createApolloClient(_ref) {
     stateLink = (0, _apolloLinkState.withClientState)(_objectSpread({
       cache: cache
     }, clientState));
-    link = (0, _client.from)([stateLink, link]);
+    link = (0, _core.from)([stateLink, link]);
   }
 
-  var apolloClient = new _client.ApolloClient(_objectSpread(_objectSpread({
+  var apolloClient = new _core.ApolloClient(_objectSpread(_objectSpread({
     link: link,
     cache: cache
   }, ssr ? {

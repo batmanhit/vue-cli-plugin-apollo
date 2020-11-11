@@ -1,11 +1,13 @@
-import { ApolloClient, InMemoryCache, split, from } from '@apollo/client'
+import { ApolloClient, split, from } from '@apollo/client/core'
+import { InMemoryCache } from '@apollo/client/cache'
 import { setContext } from '@apollo/client/link/context'
+import { onError } from '@apollo/client/link/error'
 import { createPersistedQueryLink } from '@apollo/client/link/persisted-queries'
+import { getMainDefinition } from '@apollo/client/utilities'
 import { WebSocketLink } from '@apollo/client/link/ws'
 import { createUploadLink } from 'apollo-upload-client'
 import { SubscriptionClient } from 'subscriptions-transport-ws'
 import MessageTypes from 'subscriptions-transport-ws/dist/message-types'
-import { getMainDefinition } from 'apollo-utilities'
 import { withClientState } from 'apollo-link-state'
 
 // eslint-disable-next-line no-unused-vars
@@ -55,7 +57,7 @@ export function createApolloClient ({
   // Hook called when you should write local state in the cache
   onCacheInit = undefined,
 }) {
-  let wsClient, authLink, stateLink
+  let wsClient, authLink, stateLink, errorLink
   const disableHttp = websocketsOnly && !ssr && wsEndpoint
 
   // Apollo cache
@@ -90,8 +92,14 @@ export function createApolloClient ({
     // Concat all the http link parts
     link = authLink.concat(link)
 
+    errorLink = onError(({ response, operation }) => {
+      if (operation.operationName === 'IgnoreErrorsQuery') {
+        response.errors = null
+      }
+    })
+
     if (preAuthLinks.length) {
-      link = from(preAuthLinks).concat(authLink)
+      link = from([errorLink, ...preAuthLinks, authLink])
     }
   }
 

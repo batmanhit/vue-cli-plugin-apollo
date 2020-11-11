@@ -1,13 +1,11 @@
-import { ApolloClient } from 'apollo-client'
-import { split, from } from 'apollo-link'
+import { ApolloClient, InMemoryCache, split, from } from '@apollo/client'
+import { setContext } from '@apollo/client/link/context'
+import { createPersistedQueryLink } from '@apollo/client/link/persisted-queries'
+import { WebSocketLink } from '@apollo/client/link/ws'
 import { createUploadLink } from 'apollo-upload-client'
-import { InMemoryCache } from 'apollo-cache-inmemory'
 import { SubscriptionClient } from 'subscriptions-transport-ws'
 import MessageTypes from 'subscriptions-transport-ws/dist/message-types'
-import { WebSocketLink } from 'apollo-link-ws'
 import { getMainDefinition } from 'apollo-utilities'
-import { createPersistedQueryLink } from 'apollo-link-persisted-queries'
-import { setContext } from 'apollo-link-context'
 import { withClientState } from 'apollo-link-state'
 
 // eslint-disable-next-line no-unused-vars
@@ -88,6 +86,13 @@ export function createApolloClient ({
         },
       }
     })
+
+    // Concat all the http link parts
+    link = authLink.concat(link)
+
+    if (preAuthLinks.length) {
+      link = from(preAuthLinks).concat(authLink)
+    }
   }
 
   // On the server, we don't want WebSockets and Upload links
@@ -142,9 +147,6 @@ export function createApolloClient ({
       }
     }
   }
-
-  // Concat all the http link parts
-  link = from([...preAuthLinks, authLink, link])
 
   if (clientState) {
     console.warn('clientState is deprecated, see https://vue-cli-plugin-apollo.netlify.com/guide/client-state.html')

@@ -6,41 +6,25 @@ Object.defineProperty(exports, "__esModule", {
 exports.createApolloClient = createApolloClient;
 exports.restartWebsockets = restartWebsockets;
 
-var _apolloClient = require("apollo-client");
+var _client = require("@apollo/client");
 
-var _apolloLink = require("apollo-link");
+var _context2 = require("@apollo/client/link/context");
+
+var _persistedQueries = require("@apollo/client/link/persisted-queries");
+
+var _ws = require("@apollo/client/link/ws");
 
 var _apolloUploadClient = require("apollo-upload-client");
-
-var _apolloCacheInmemory = require("apollo-cache-inmemory");
 
 var _subscriptionsTransportWs = require("subscriptions-transport-ws");
 
 var _messageTypes = _interopRequireDefault(require("subscriptions-transport-ws/dist/message-types"));
 
-var _apolloLinkWs = require("apollo-link-ws");
-
 var _apolloUtilities = require("apollo-utilities");
-
-var _apolloLinkPersistedQueries = require("apollo-link-persisted-queries");
-
-var _apolloLinkContext = require("apollo-link-context");
 
 var _apolloLinkState = require("apollo-link-state");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
-
-function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread(); }
-
-function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
-
-function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
-
-function _iterableToArray(iter) { if (typeof Symbol !== "undefined" && Symbol.iterator in Object(iter)) return Array.from(iter); }
-
-function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) return _arrayLikeToArray(arr); }
-
-function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
 
 function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
@@ -100,7 +84,7 @@ function createApolloClient(_ref) {
   var disableHttp = websocketsOnly && !ssr && wsEndpoint; // Apollo cache
 
   if (!cache) {
-    cache = new _apolloCacheInmemory.InMemoryCache(inMemoryCacheOptions);
+    cache = new _client.InMemoryCache(inMemoryCacheOptions);
   }
 
   if (!disableHttp) {
@@ -111,11 +95,11 @@ function createApolloClient(_ref) {
     if (!link) {
       link = httpLink;
     } else if (defaultHttpLink) {
-      link = (0, _apolloLink.from)([link, httpLink]);
+      link = (0, _client.from)([link, httpLink]);
     } // HTTP Auth header injection
 
 
-    authLink = (0, _apolloLinkContext.setContext)( /*#__PURE__*/function () {
+    authLink = (0, _context2.setContext)( /*#__PURE__*/function () {
       var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(_, _ref2) {
         var headers, Authorization, authorizationHeader;
         return regeneratorRuntime.wrap(function _callee$(_context) {
@@ -146,7 +130,13 @@ function createApolloClient(_ref) {
       return function (_x, _x2) {
         return _ref3.apply(this, arguments);
       };
-    }());
+    }()); // Concat all the http link parts
+
+    link = authLink.concat(link);
+
+    if (preAuthLinks.length) {
+      link = (0, _client.from)(preAuthLinks).concat(authLink);
+    }
   } // On the server, we don't want WebSockets and Upload links
 
 
@@ -171,7 +161,7 @@ function createApolloClient(_ref) {
       }
 
       if (persisting === true) {
-        link = (0, _apolloLinkPersistedQueries.createPersistedQueryLink)(persistingOpts).concat(link);
+        link = (0, _persistedQueries.createPersistedQueryLink)(persistingOpts).concat(link);
       }
     } // Web socket
 
@@ -190,12 +180,12 @@ function createApolloClient(_ref) {
         }
       }); // Create the subscription websocket link
 
-      var wsLink = new _apolloLinkWs.WebSocketLink(wsClient);
+      var wsLink = new _ws.WebSocketLink(wsClient);
 
       if (disableHttp) {
         link = link ? link.concat(wsLink) : wsLink;
       } else {
-        link = (0, _apolloLink.split)( // split based on operation type
+        link = (0, _client.split)( // split based on operation type
         function (_ref4) {
           var query = _ref4.query;
 
@@ -207,20 +197,17 @@ function createApolloClient(_ref) {
         }, wsLink, link);
       }
     }
-  } // Concat all the http link parts
-
-
-  link = (0, _apolloLink.from)([].concat(_toConsumableArray(preAuthLinks), [authLink, link]));
+  }
 
   if (clientState) {
     console.warn('clientState is deprecated, see https://vue-cli-plugin-apollo.netlify.com/guide/client-state.html');
     stateLink = (0, _apolloLinkState.withClientState)(_objectSpread({
       cache: cache
     }, clientState));
-    link = (0, _apolloLink.from)([stateLink, link]);
+    link = (0, _client.from)([stateLink, link]);
   }
 
-  var apolloClient = new _apolloClient.ApolloClient(_objectSpread(_objectSpread({
+  var apolloClient = new _client.ApolloClient(_objectSpread(_objectSpread({
     link: link,
     cache: cache
   }, ssr ? {

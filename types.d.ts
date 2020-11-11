@@ -1,5 +1,5 @@
 declare module 'vue-cli-plugin-apollo/graphql-client' {
-  import { ApolloClient, ApolloClientOptions, Resolvers } from 'apollo-client'
+  import { ApolloClient, ApolloClientOptions, Resolvers } from '@apollo/client'
   import { DocumentNode } from 'apollo-link'
   import { SubscriptionClient } from 'subscriptions-transport-ws'
   import { ClientStateConfig } from 'apollo-link-state'
@@ -57,7 +57,7 @@ declare module 'vue-cli-plugin-apollo/graphql-client' {
 
 declare module 'vue-cli-plugin-apollo/graphql-server' {
   // eslint-disable-next-line import/no-duplicates
-  import { Resolvers } from 'apollo-client'
+  import { Resolvers } from '@apollo/client'
   import { ContextFunction, Context } from 'apollo-server-core'
   import { ExpressContext } from 'apollo-server-express/dist/ApolloServer'
   import { DataSources } from 'apollo-server-core/dist/graphqlOptions'

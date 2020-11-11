@@ -141,10 +141,10 @@ export function createApolloClient ({
         )
       }
     }
-
-    // Concat all the http link parts
-    link = from([...preAuthLinks, authLink, link])
   }
+
+  // Concat all the http link parts
+  link = from([...preAuthLinks, authLink, link])
 
   if (clientState) {
     console.warn('clientState is deprecated, see https://vue-cli-plugin-apollo.netlify.com/guide/client-state.html')

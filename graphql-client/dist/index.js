@@ -206,11 +206,11 @@ function createApolloClient(_ref) {
           return kind === 'OperationDefinition' && operation === 'subscription';
         }, wsLink, link);
       }
-    } // Concat all the http link parts
+    }
+  } // Concat all the http link parts
 
 
-    link = (0, _apolloLink.from)([].concat(_toConsumableArray(preAuthLinks), [authLink, link]));
-  }
+  link = (0, _apolloLink.from)([].concat(_toConsumableArray(preAuthLinks), [authLink, link]));
 
   if (clientState) {
     console.warn('clientState is deprecated, see https://vue-cli-plugin-apollo.netlify.com/guide/client-state.html');

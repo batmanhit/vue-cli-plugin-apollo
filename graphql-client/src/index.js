@@ -91,10 +91,6 @@ export function createApolloClient ({
 
     // Concat all the http link parts
     link = authLink.concat(link)
-
-    if (preAuthLinks.length) {
-      link = from(preAuthLinks).concat(authLink)
-    }
   }
 
   // On the server, we don't want WebSockets and Upload links
@@ -157,6 +153,10 @@ export function createApolloClient ({
       ...clientState,
     })
     link = from([stateLink, link])
+  }
+
+  if (preAuthLinks.length) {
+    link = from(preAuthLinks).concat(authLink)
   }
 
   const apolloClient = new ApolloClient({

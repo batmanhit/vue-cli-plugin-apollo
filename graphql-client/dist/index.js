@@ -137,10 +137,6 @@ function createApolloClient(_ref) {
     }()); // Concat all the http link parts
 
     link = authLink.concat(link);
-
-    if (preAuthLinks.length) {
-      link = (0, _apolloLink.from)(preAuthLinks).concat(authLink);
-    }
   } // On the server, we don't want WebSockets and Upload links
 
 
@@ -209,6 +205,10 @@ function createApolloClient(_ref) {
       cache: cache
     }, clientState));
     link = (0, _apolloLink.from)([stateLink, link]);
+  }
+
+  if (preAuthLinks.length) {
+    link = (0, _apolloLink.from)(preAuthLinks).concat(authLink);
   }
 
   var apolloClient = new _apolloClient.ApolloClient(_objectSpread(_objectSpread({

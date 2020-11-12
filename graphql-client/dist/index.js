@@ -208,7 +208,7 @@ function createApolloClient(_ref) {
   }
 
   if (preAuthLinks.length) {
-    link = (0, _apolloLink.from)(preAuthLinks).concat(authLink);
+    link = (0, _apolloLink.from)(preAuthLinks).concat(link);
   }
 
   var apolloClient = new _apolloClient.ApolloClient(_objectSpread(_objectSpread({

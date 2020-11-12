@@ -156,7 +156,7 @@ export function createApolloClient ({
   }
 
   if (preAuthLinks.length) {
-    link = from(preAuthLinks).concat(authLink)
+    link = from(preAuthLinks).concat(link)
   }
 
   const apolloClient = new ApolloClient({
